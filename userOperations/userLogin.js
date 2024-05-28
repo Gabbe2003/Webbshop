@@ -1,0 +1,84 @@
+const User = require('../mongodb/user');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+const handleLogin = async (req, res) => {
+    //getting two varibales from the request,identifier and password. We intialize the identifier later.
+    const { identifier, password } = req.body;
+    const cookies = req.cookies;
+
+
+    if (!identifier || !password) {
+        return res.status(400).json({ 'message': 'All fields must have a value' });
+    }
+    // we are assigning both of the email and username varibales to identifier so that the user can login with either the email or the username.
+    const foundUser = await User.findOne({ 
+        $or: [ 
+            { email: identifier }, 
+            { username: identifier } 
+        ]
+    }).exec();
+    
+
+    if (!foundUser) {
+        console.log(foundUser);
+        return res.status(401).json({ 'message':  'User not found'  });
+    } 
+    //comparing the entered user with the foundUser.password which is the user that the user is trying to login as, if it succsed then we give them a jwt and a cookie.
+    const match = await bcrypt.compare(password, foundUser.password);
+
+    if (!match) {
+        return res.status(401).json({ 'message': 'Wrong credentials, try again!'   });
+    }
+    // Give cookie and a JWT token.
+    if (match) {
+        const accessToken = jwt.sign(
+            {
+                "UserInfo": {
+                    "id": foundUser._id,
+                    "username": foundUser.username,
+                }
+            },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: '30m' } 
+        );
+
+        const refreshToken = jwt.sign(
+            { 
+                "id": foundUser._id,
+                "username": foundUser.username
+
+            },
+            process.env.REFRESH_TOKEN_SECRET,
+            { expiresIn: '7d' } 
+        );
+
+        //first we check for the refreshToken from the foundUser varible, if not availble we set it to empty as a default. Then we check if there is a jwt in the cookie which means there is an active user, we filter it out and give them a new token instead.Then save everything after we gave it to the user.
+        const refreshTokenArray = foundUser.refreshToken || [];
+        const newRefreshTokenArray = cookies?.jwt
+            ? refreshTokenArray.filter(rt => rt !== cookies.jwt)
+            : refreshTokenArray;
+
+        foundUser.refreshToken = [...newRefreshTokenArray, refreshToken];
+        await foundUser.save();
+
+        // Clear the old token cookie if it exists
+        if (cookies?.jwt) {
+            res.clearCookie('accessToken', { httpOnly: true, sameSite: 'Lax', secure: false }); 
+            res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'Lax', secure: false }); 
+        }
+        
+        res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'Lax', secure: false, maxAge: 30 * 60 * 1000 }); // 30 minutes
+
+        // Set the refresh token as a separate cookie
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'Lax', secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
+        
+        
+        // Send the access token to the client
+        res.json({success: true, accessToken,});
+    } else {
+        res.status(500).json({ message: 'Error while trying to verify!'});
+    }
+};
+
+module.exports = { handleLogin };
