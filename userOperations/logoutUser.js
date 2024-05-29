@@ -1,4 +1,4 @@
-const User = require('../mongodb/user');
+const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 
 const handleLogout = async (req, res) => {

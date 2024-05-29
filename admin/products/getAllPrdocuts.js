@@ -1,4 +1,4 @@
-const Product = require('../../mongodb/productSchema');
+const Product = require('../../models/productSchema');
 
 const getAllProducts = async (req, res) => {
     const { name, price, category } = req.query;

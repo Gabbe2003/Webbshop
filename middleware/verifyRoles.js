@@ -1,4 +1,4 @@
-const User = require('../mongodb/user');
+const User = require('../models/user');
 
 const validateUserRoles = async (req, res, next) => {
     const { identifier } = req.body;

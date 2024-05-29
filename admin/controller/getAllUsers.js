@@ -1,4 +1,4 @@
-const User = require('../../mongodb/user');
+const User = require('../../models/user');
 
 const getAllUsers = async (req, res) => {
     const { username } = req.query; 

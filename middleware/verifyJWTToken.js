@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../mongodb/user');
+const User = require('../models/user');
 
 const verifyJWT = async (req, res, next) => {
     const token = req.cookies.accessToken;

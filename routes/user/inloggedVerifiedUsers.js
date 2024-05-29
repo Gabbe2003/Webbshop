@@ -12,9 +12,11 @@ const limiter = rateLimit({
 const userLogOut = require('../../userOperations/logoutUser');
 const updateUserInfo = require('../../userSettings/updateUserInfo');
 const deleteUser = require('../../userSettings/deleteUser');
+const getUserMessages = require('../../chattControllers/getUserChat');
 
 router.post('/logout', limiter, userLogOut.handleLogout); //logout user
 router.put('/updateUserInfo/:userId', limiter, updateUserInfo.updateUserData); // update user information
 router.delete('/deleteUser/:userId', limiter, deleteUser.deleteUser); // delete user
+router.get('/getUserMessages', limiter, getUserMessages.getUserMessages ); // get user messages with id
 
 module.exports = router; 

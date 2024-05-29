@@ -1,4 +1,4 @@
-const Product = require('../../mongodb/productSchema');
+const Product = require('../../models/productSchema');
 
 const createProduct = async (req, res) => {
     const { name, description, price, imageUrl, inventory, category } = req.body;

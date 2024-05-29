@@ -14,11 +14,12 @@ const PORT = 9000;
 const http = require('http');
 const app = express();
 const server = http.createServer(app);
+const Message = require('./models/messages');
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: ['http://localhost:5173'],
-    credentials: true
+    origin: '*',
+    credentials: true,
   },
 });
 
@@ -27,37 +28,31 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan('tiny'));
 
-
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('./views', express.static(path.join(__dirname, 'views')));
 
-app.get('/test', function (req, res) {
-  const options = {
-      root: path.join(__dirname)
-  };
-  const fileName = 'views/test.html';
-  res.sendFile(fileName, options, function (err) {
-      if (err) {
-          console.error('Error sending file:', err);
-      } else {
-          console.log('Sent:', fileName);
-      }
-  });
-});
-
 io.on('connection', (socket) => {
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
-    console.log('message: ' + msg);
+  socket.on('chat message', async (msg) => {
+    try {
+      // Create a new message instance and save it to the database
+      const message = new Message({
+        owner: msg.user, // Ensure that 'user' here is the ObjectId of the user
+        text: msg.text,
+        media: msg.media // if any media is attached
+      });
+      await message.save();
+      console.log(message)
+      
+      // Broadcast the message to other clients
+      io.emit('chat message', msg);
+    } catch (error) {
+      console.error('Failed to save message:', error);
+      // Optionally, emit an error back to the sender
+    }
   });
 });
 
-io.on('connect', (socket) => {
-  console.log('A user connected');
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
-});
+
 
 app.use('/', require('./routes/user/userOperations'));
 app.use('/', verifyUser, require('./routes/user/verifiedUserOperations'));
@@ -66,13 +61,13 @@ app.use('/', verifyUser, verifyJWT, rolesController, require('./routes/admin/adm
 
 mongoose.connect(process.env.DATABASE_URL, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
   })
   .then(() => {
     server.listen(PORT, () => {
       console.log(`Server running on Port ${PORT}`);
     });
   })
-  .catch(err => {
+  .catch((err) => {
     console.error('Failed to connect to MongoDB', err);
   });

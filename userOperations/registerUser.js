@@ -1,4 +1,4 @@
-const User = require('../mongodb/user');
+const User = require('../models/user');
 const validator = require('validator');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');

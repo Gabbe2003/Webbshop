@@ -1,4 +1,4 @@
-const User = require('../mongodb/user');
+const User = require('../models/user');
 
 // Helper function to validate email with regex
 const validateEmail = (email) => {

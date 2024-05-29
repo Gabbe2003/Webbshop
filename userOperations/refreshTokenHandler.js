@@ -61,7 +61,7 @@
 // };
 
 // module.exports = { handleRefreshToken };
-const User = require('../mongodb/user');
+const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 
 const handleRefreshToken = async (req, res) => {

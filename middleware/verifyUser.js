@@ -1,4 +1,4 @@
-const User = require('../mongodb/user');
+const User = require('../models/user');
 
 const validateUserVerification = async (req, res, next) => {
     const { identifier } = req.body;  // Identifier can be username or email

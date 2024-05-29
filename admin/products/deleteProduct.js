@@ -1,4 +1,4 @@
-const Product = require('../../mongodb/productSchema');
+const Product = require('../../models/productSchema');
 
 const deleteProduct = async (req,res) => {
     

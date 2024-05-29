@@ -35,10 +35,15 @@ const UserSchema = new Schema({
         type: [String],
         enum: ['Admin', 'User'],
         default: ['User'] 
-    }, purchases: [{
+    }, 
+    purchases: [{
         type: Schema.Types.ObjectId,
         ref: 'Purchase'
     }],
+    messages: {
+        type: Schema.Types.ObjectId,
+        ref: 'Messages'
+    },
     }, {
         timestamps:true
 });
